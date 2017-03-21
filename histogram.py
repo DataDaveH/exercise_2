@@ -5,25 +5,29 @@ import sys
 import myDBObj
 
 #set up db
-db = PsDBConnection()
+db = myDBObj.PgDBConnection()
 if not db.bInit:
-    return None
+    sys.exit()
 
-if len(sys.argv) != 3:
-   print( """usage:\thistogram.py lower, upper
+if (len(sys.argv) == 2) & (',' in sys.argv[1]):
+    #see if we have lower,upper
+    lower, upper = sys.argv[1].split(',')
+elif len(sys.argv) == 3:
+    lower = sys.argv[1]
+    upper = sys.argv[2]
+else:    
+    print(sys.argv)
+    print( """usage:\thistogram.py lower upper
           \nlower:\tlower bound\
           \nupper:\tupper bound
           \nreturns all the words with a total number of occurrences greater than or equal to\
-          \nlower, and less than or equal to upper""")
-   sys.exit()
-
-lower = sys.argv[2]
-upper = sys.argv[3]
+          \nlower, and less than or equal to upper\n""")
+    sys.exit()
 
 try:
     cur = db.conn.cursor()
     cur.execute("SELECT word, count FROM tweetwordcount WHERE count >= %s AND count <= %s \
-                 ORDER BY count DESC", (lower, upper))
+                 ORDER BY count DESC;", (lower, upper))
     records = cur.fetchmany(1000)
     while records:
         for rec in records:

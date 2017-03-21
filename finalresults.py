@@ -5,33 +5,34 @@ import sys
 import myDBObj
 
 #set up db
-db = PsDBConnection()
+db = myDBObj.PgDBConnection()
 if not db.bInit:
     sys.exit()
 
 # if we are investigating a particular word
-if len( sys.argv > 1):
+if len( sys.argv) > 1:
     searchWord = sys.argv[1]
     try:
         cur = db.conn.cursor()
-        cur.execute("SELECT count from tweetwordcount where word=%s", [searchWord])
+        cur.execute("SELECT count from tweetwordcount where word=%s;", [searchWord])
         
         records = cur.fetchall()
         if len(records) == 0:
-            print( "Total number of occurrences of '%s': 0" % (searchWord))
+            print( "\nTotal number of occurrences of '%s': 0\n" % (searchWord))
         else:
             for rec in records:
-                print( "Total number of occurrences of '%s': %d" % (searchWord, rec[0]))
+                print( "\nTotal number of occurrences of '%s': %d\n" % (searchWord, rec[0]))
         db.conn.commit()
 
     except Exception as e:
-        print( "Total number of occurrences of '%s': 0" % (searchWord))
-        #print(e)
+        print(e)
+
 # print them all
 else:
     try:
+        print(db.conn)
         cur = db.conn.cursor()
-        cur.execute("SELECT word, count from tweetwordcount order by word")
+        cur.execute("SELECT word, count FROM tweetwordcount ORDER BY word;")
         records = cur.fetchmany(1000)
         while records:
             for rec in records:
