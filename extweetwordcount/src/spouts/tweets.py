@@ -77,7 +77,7 @@ class Tweets(Spout):
                 self.emit([tweet])
  
         except Queue.Empty:
-            self.log("Empty queue exception ")
+#            self.log("Empty queue exception ")
             time.sleep(0.1) 
 
     def ack(self, tup_id):

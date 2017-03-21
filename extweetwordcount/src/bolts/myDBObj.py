@@ -8,12 +8,12 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-class PgDBConnection(self):
+class PgDBConnection:
     """Create the db and table, and connect. Simple wrapper to
     ensure the connection is closed on exit"""
 
     def __init__(self):
-
+        
         self.bInit = False;
         self.defaultDB = "postgres"
         self.database = "tcount"
@@ -24,34 +24,44 @@ class PgDBConnection(self):
         
         # Connect to the database
         try:
-            self.conn = psycopg2.connect(self.database, self.user, self.password, self.host, self.port)
+            self.conn = psycopg2.connect( database = self.database,
+                                          user = self.user,
+                                          password = self.password,
+                                          host = self.host,
+                                          port = self.port)
             self.bInit = True
         except:
             # nothing fancy, just assume the db isn't created yet
             pass
         
         #Create the Database
-        if !self.bInit:
+        if not self.bInit:
             try:
                 # CREATE DATABASE can't run inside a transaction
-                self.conn = psycopg2.connect( self.defaultDB, self.user, self.password, self.host, self.port)
+                self.conn = psycopg2.connect( database = self.defaultDB,
+                                              user = self.user,
+                                              password = self.password,
+                                              host = self.host,
+                                              port = self.port)
                 self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                cur = conn.cursor()
-                cur.execute("CREATE DATABASE " + database)
-                bInit = true
+                cur = self.conn.cursor()
+                cur.execute("CREATE DATABASE " + self.database)
+                self.bInit = True
+                cur.close()
+                self.conn.close()
                 print "Created database tcount"
-                
+
             except psycopg2.Error as e:
                 print e.pgerror
                 
-            finally:
-                cur.close()
-                self.conn.close()
-
             # db created, connection should work
             if self.bInit:
                 try:
-                    self.conn = psycopg2.connect(self.database, self.user, self.password, self.host, self.port)
+                    self.conn = psycopg2.connect( database = self.database,
+                                                  user = self.user,
+                                                  password = self.password,
+                                                  host = self.host,
+                                                  port = self.port)
 
                 except psycopg2.Error as e:
                     self.bInit = False
@@ -65,14 +75,22 @@ class PgDBConnection(self):
                 cur.execute('''CREATE TABLE tweetwordcount
                        (word TEXT PRIMARY KEY     NOT NULL,
                        count INT     NOT NULL);''')
+                self.conn.commit()
+                print "Created table tweetwordcount"
             except psycopg2.Error as e:
-                self.bInit = False
-                print e.pgerror
+                # it is only an error if it is not an already exists error
+                if "already exists" not in e.pgerror:
+                    self.bInit = False
+                    print e.pgerror
             finally:
                 cur.close()
     
     # close the connection on exit
     def __del__(self):
-        if bInit:
+        if self.bInit:
             self.conn.close()
             self.bInit = False
+
+
+#db = PgDBConnection()
+
