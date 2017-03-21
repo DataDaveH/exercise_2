@@ -3,9 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import Counter
 from streamparse.bolt import Bolt
 import sys
-# seems hacky but can't get python to find my other objects
-sys.path.append("../../../../exercise_2")
-from myDBObj import *
+from .myDBObj import *
 
 class WordCounter(Bolt):
 
