@@ -1,7 +1,9 @@
 #
 # finalresults.py
 #
+#from __future__ import absolute_import
 import sys
+sys.path.append("~/ex2Files")
 import myDBObj
 
 #set up db

@@ -3,23 +3,27 @@ from __future__ import absolute_import, print_function, unicode_literals
 import itertools, time
 import tweepy, copy 
 import Queue, threading
+import configparser
 
 from streamparse.spout import Spout
 
 ################################################################################
 # Twitter credentials
 ################################################################################
-twitter_credentials = {
-    "consumer_key"        :  "hSRTIgIOcRlducBVkUJJr8AIV",
-    "consumer_secret"     :  "bQohiy0n3gUrAUfXtDwxVTE5LZg7NcXzCFGTpyDWRIiyLnAoma",
-    "access_token"        :  "843594662606602240-j3qA2UWgPEtoWMQhfWuwHQMDpleRq01",
-    "access_token_secret" :  "lMJMGL7zXJEvrEigy92EwbzmJ3dwbi66acJ1UfPZ0F9FQ",
-}
+
+##{
+##    "consumer_key"        :  "hSRTIgIOcRlducBVkUJJr8AIV",
+##    "consumer_secret"     :  "bQohiy0n3gUrAUfXtDwxVTE5LZg7NcXzCFGTpyDWRIiyLnAoma",
+##    "access_token"        :  "843594662606602240-j3qA2UWgPEtoWMQhfWuwHQMDpleRq01",
+##    "access_token_secret" :  "lMJMGL7zXJEvrEigy92EwbzmJ3dwbi66acJ1UfPZ0F9FQ",
+##}
 
 def auth_get(auth_key):
-    if auth_key in twitter_credentials:
-        return twitter_credentials[auth_key]
-    return None
+    try:
+        if auth_key in twitter_credentials:
+            return twitter_credentials[auth_key]
+    except:
+        return None
 
 ################################################################################
 # Class to listen and act on the incoming tweets
@@ -45,6 +49,20 @@ class Tweets(Spout):
     def initialize(self, stormconf, context):
         self._queue = Queue.Queue(maxsize = 100)
 
+        config = configparser.ConfigParser()
+        try:
+            config.read('~/ex2Files/config.ini')
+            twitter_credentials = config['CREDENTIALS']
+        except:
+            sys.exit("Incorrect config format")
+
+        try:
+            configParams = config['DEFAULT']
+            track = configParams["track"].split(,)
+        except:
+            track = ""
+        
+        
         consumer_key = auth_get("consumer_key") 
         consumer_secret = auth_get("consumer_secret") 
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -61,7 +79,7 @@ class Tweets(Spout):
 
         # Create the stream and listen for english tweets
         stream = tweepy.Stream(auth, listener, timeout=None)
-        stream.filter(languages=["en"], track=["a", "the", "i", "you", "u"], async=True)
+        stream.filter(languages=["en"], track, async=True)
 
     def queue(self):
         return self._queue
