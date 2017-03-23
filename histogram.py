@@ -3,7 +3,7 @@
 #
 from __future__ import absolute_import
 import sys
-sys.path.append("~/ex2Files")
+#sys.path.append("~/ex2Files")
 import myDBObj
 
 #set up db
@@ -11,7 +11,7 @@ db = myDBObj.PgDBConnection()
 if not db.bInit:
     sys.exit()
 
-if (len(sys.argv) == 2) & (',' in sys.argv[1]):
+if (len(sys.argv) == 2) and (',' in sys.argv[1]):
     #see if we have lower,upper
     lower, upper = sys.argv[1].split(',')
 elif len(sys.argv) == 3:
@@ -33,7 +33,7 @@ try:
     records = cur.fetchmany(1000)
     while records:
         for rec in records:
-            print("%s:\t%s" % (rec[0], rec[1]))
+            print("%-15s%10s" % (rec[0], rec[1]))
         records = cur.fetchmany(1000)
     db.conn.commit()
 

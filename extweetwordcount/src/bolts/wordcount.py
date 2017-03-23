@@ -2,8 +2,10 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Counter
 from streamparse.bolt import Bolt
+import os
 import sys
-sys.path.append("~/ex2Files")
+sys.path.append(os.path.expanduser('~/ex2Files'))
+print(sys.path)
 from myDBObj import *
 
 
@@ -21,7 +23,7 @@ class WordCounter(Bolt):
         # drop the contents of the db table before each run
         try:
             cur = self.db.conn.cursor()
-            cur.execute("DELETE * FROM tweetwordcount;")
+            cur.execute("DELETE FROM tweetwordcount;")
             self.db.conn.commit()
             
         except Exception as e:

@@ -1,9 +1,9 @@
 from __future__ import absolute_import, print_function, unicode_literals
-
+import sys, os
 import itertools, time
 import tweepy, copy 
 import Queue, threading
-import configparser
+import ConfigParser
 
 from streamparse.spout import Spout
 
@@ -18,10 +18,11 @@ from streamparse.spout import Spout
 ##    "access_token_secret" :  "lMJMGL7zXJEvrEigy92EwbzmJ3dwbi66acJ1UfPZ0F9FQ",
 ##}
 
-def auth_get(auth_key):
+# twitter_credentials are in section 'CREDENTIALS' in the config file
+def auth_get(auth_key, config):
     try:
-        if auth_key in twitter_credentials:
-            return twitter_credentials[auth_key]
+        if auth_key in config.options('CREDENTIALS'):
+            return config.get('CREDENTIALS', auth_key)
     except:
         return None
 
@@ -49,28 +50,35 @@ class Tweets(Spout):
     def initialize(self, stormconf, context):
         self._queue = Queue.Queue(maxsize = 100)
 
-        config = configparser.ConfigParser()
+        config = ConfigParser.ConfigParser()
         try:
-            config.read('~/ex2Files/config.ini')
-            twitter_credentials = config['CREDENTIALS']
+            config.read(os.path.expanduser('~/ex2Files/config.ini'))
         except:
-            sys.exit("Incorrect config format")
+            sys.exit("Cannot read config file")
 
         try:
-            configParams = config['DEFAULT']
-            track = configParams["track"].split(,)
+            trackString = config.get('OPTIONS', 'track')
+            
+            # strip out extra quotes and spaces
+            track = [i.strip() for i in trackString.strip('"\'').split(',')]
+        except Exception as e:
+            track = ['a', 'an', 'and', 'the', 'you', 'u']
+            self.log('\n\n\nUnable to read track option from config file, defaulting to: ' \
+                 + ','.join(track) + '\n\n\n')
+        
+        try:
+            consumer_key = auth_get("consumer_key", config)
+            consumer_secret = auth_get("consumer_secret", config)
+            print(consumer_key + '\n\t' + consumer_secret, file=sys.stderr)
+            auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+            
+            if auth_get("access_token", config) and \
+               auth_get("access_token_secret", config):
+                access_token = auth_get("access_token", config)
+                access_token_secret = auth_get("access_token_secret", config)
+                auth.set_access_token(access_token, access_token_secret)
         except:
-            track = ""
-        
-        
-        consumer_key = auth_get("consumer_key") 
-        consumer_secret = auth_get("consumer_secret") 
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-
-        if auth_get("access_token") and auth_get("access_token_secret"):
-            access_token = auth_get("access_token")
-            access_token_secret = auth_get("access_token_secret")
-            auth.set_access_token(access_token, access_token_secret)
+            sys.exit('Credentials problem, check config file')
 
         self._tweepy_api = tweepy.API(auth)
 
@@ -79,7 +87,7 @@ class Tweets(Spout):
 
         # Create the stream and listen for english tweets
         stream = tweepy.Stream(auth, listener, timeout=None)
-        stream.filter(languages=["en"], track, async=True)
+        stream.filter(languages=["en"], track=track, async=True)
 
     def queue(self):
         return self._queue
