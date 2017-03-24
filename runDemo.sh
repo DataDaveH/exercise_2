@@ -8,9 +8,9 @@ cp ./config.ini ~/ex2Files
 cp ./myDBObj.py ~/ex2Files
 touch ~/ex2Files/__init__.py
 
-# see if command line param specified for tracking
+# see if the command line param for tracking was specified
 if [[ $# -eq 1 ]]; then
-    # update the ini file with the new key before copying
+    # update the ini file with the new key
     sed -i 's/\(^track\s*=\)\(.*\)/\1 '$1'/' $LOAD_DIR/config.ini
 fi
 
