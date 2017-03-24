@@ -27,10 +27,7 @@ class WordCounter(Bolt):
             self.db.conn.commit()
             
         except Exception as e:
-            # this seems to throw an exception when there are no rows to delete, which happens
-            # every run for all but one of the word counters. So, no need to print the error,
-            # just clean it up
-            self.db.conn.rollback()
+            db.conn.rollback()
 #            self.log('%s\n' % e)
         
         finally:
